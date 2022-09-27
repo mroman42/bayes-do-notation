@@ -48,6 +48,10 @@ instance (Finitary a, Show a) => Show (Distribution a) where
 fail :: Distribution a -> String
 fail = undefined
 
+ifThenElse :: Bool -> a -> a -> a
+ifThenElse True x _ = x
+ifThenElse False _ y = y 
+
 -- Distribution combinators.
 return :: (Finitary a) => a -> Distribution a
 return x = Distribution (\y ->
@@ -63,7 +67,7 @@ observe True = return ()
 observe False = absurd
 
 -- Example.
-data Colour = Red | Blue
+{- data Colour = Red | Blue
   deriving stock (Eq, Generic, Show)
   deriving anyclass (Finitary)
 data Urn = UrnRed | UrnMixed | UrnBlue
@@ -93,3 +97,71 @@ example = do
   ball <- content urn
   observe (ball == Red)
   return urn
+  
+  
+-- Twin's prisoners dilemma
+data Move = Cooperate | Defect
+  deriving stock (Eq, Generic, Show)
+  deriving anyclass (Finitary)
+data Outcomes = High | Medium | Low | None  
+  deriving stock (Eq, Generic, Show)
+  deriving anyclass (Finitary)
+  
+uniform :: Distribution Move
+uniform = Distribution $ \move ->
+  case move of
+    Cooperate -> 1 / 2
+    Defect -> 1 / 2
+    
+value :: Move -> Move -> Outcomes
+value Cooperate Cooperate = Medium
+value Cooperate Defect    = None
+value Defect    Cooperate = High
+value Defect    Defect    = Low
+
+twinprisoners :: Distribution Outcomes
+twinprisoners = do
+  me <- return Cooperate
+  mytwin <- uniform
+  observe (me == mytwin)
+  return $ value me mytwin
+  
+-- Newcomb's problem
+data Stage = OneBox | TwoBox
+  deriving stock (Eq, Generic, Show)
+  deriving anyclass (Finitary)
+data Doing = OneBoxing | TwoBoxing
+  deriving stock (Eq, Generic, Show)
+  deriving anyclass (Finitary)
+data Money = Million | Zero | One | MillionOne 
+  deriving stock (Eq, Generic, Show)
+  deriving anyclass (Finitary)
+    
+predictor :: Distribution Stage
+predictor = Distribution $ \stage ->
+  case stage of
+    OneBox -> 1 / 2
+    TwoBox -> 1 / 2
+    
+you :: Distribution Doing
+you = return TwoBoxing
+
+money :: Doing -> Stage -> Money
+money OneBoxing OneBox = Zero
+money TwoBoxing OneBox = One
+money OneBoxing TwoBox = Million
+money TwoBoxing TwoBox = MillionOne
+
+correctPrediction :: Doing -> Stage -> Bool
+correctPrediction OneBoxing OneBox = False
+correctPrediction TwoBoxing OneBox = True
+correctPrediction OneBoxing TwoBox = True
+correctPrediction TwoBoxing TwoBox = False
+
+newcomb :: Distribution Money
+newcomb = do
+  stage <- predictor
+  choice <- you
+  observe (correctPrediction choice stage)
+  return $ money choice stage
+ -}
