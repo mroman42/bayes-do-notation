@@ -7,7 +7,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BlockArguments #-}
 
-module Cancer where
+module Smoking where
 
 import Bayes
 import Data.Ord
